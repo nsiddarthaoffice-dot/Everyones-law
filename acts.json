@@ -1,0 +1,92 @@
+[
+  {
+    "id": "bns-2023",
+    "name": "Bharatiya Nyaya Sanhita (BNS), 2023",
+    "file": "documents/bns.txt",
+    "description": "India's main criminal code — defines crimes (theft, assault, fraud, cheating, offences against women, murder, etc.) and their punishments. Replaces the old Indian Penal Code (IPC)."
+  },
+  {
+    "id": "bnss-2023",
+    "name": "Bharatiya Nagarik Suraksha Sanhita (BNSS), 2023",
+    "file": "documents/bnss.txt",
+    "description": "Criminal procedure — how police investigate, arrest, file FIRs, and how criminal trials proceed. Replaces the old Code of Criminal Procedure (CrPC)."
+  },
+  {
+    "id": "bsa-2023",
+    "name": "Bharatiya Sakshya Adhiniyam (BSA), 2023",
+    "file": "documents/bsa.txt",
+    "description": "India's law of evidence — what counts as valid evidence in court (witnesses, documents, digital evidence, confessions). Replaces the old Indian Evidence Act."
+  },
+  {
+    "id": "constitution",
+    "name": "The Constitution of India",
+    "file": "documents/constitution.txt",
+    "description": "The supreme law of India — fundamental rights, duties, structure of government, and how the state must treat citizens."
+  },
+  {
+    "id": "ica-1872",
+    "name": "Indian Contract Act, 1872",
+    "file": "documents/ica-1872.txt",
+    "description": "Governs agreements and contracts — what makes an agreement legally valid, breach of contract, compensation, and related remedies."
+  },
+  {
+    "id": "consumer-protection-2019",
+    "name": "Consumer Protection Act, 2019",
+    "file": "documents/consumer-protection-2019.txt",
+    "description": "Rights of consumers — defective goods, deficient services, unfair trade practices, e-commerce complaints, and how to approach consumer courts/commissions."
+  },
+  {
+    "id": "dpdp-2023",
+    "name": "Digital Personal Data Protection (DPDP) Act, 2023",
+    "file": "documents/dpdp-2023.txt",
+    "description": "How personal data must be collected, used, and protected by companies/apps/websites in India, and what rights individuals have over their own data."
+  },
+  {
+    "id": "rti-2005",
+    "name": "Right to Information (RTI) Act, 2005",
+    "file": "documents/rti-2005.txt",
+    "description": "How any citizen can request information from government bodies, timelines for response, and the appeals process if refused."
+  },
+  {
+    "id": "companies-act-2013",
+    "name": "The Companies Act, 2013",
+    "file": "documents/companies-act-2013.txt",
+    "description": "Governs how companies in India are formed, run, and regulated — director duties, shareholder rights, company disputes, fraud, and winding up."
+  },
+  {
+    "id": "hindu-marriage-1955",
+    "name": "The Hindu Marriage Act, 1955",
+    "file": "documents/hindu-marriage-1955.txt",
+    "description": "Marriage, divorce, judicial separation, maintenance, and custody rules for Hindus (also applies to Buddhists, Jains, Sikhs)."
+  },
+  {
+    "id": "special-marriage-1954",
+    "name": "The Special Marriage Act, 1954",
+    "file": "documents/special-marriage-1954.txt",
+    "description": "Civil marriage law allowing any two people in India to marry regardless of religion, plus related divorce and maintenance provisions."
+  },
+  {
+    "id": "dissolution-muslim-marriage-1939",
+    "name": "Dissolution of Muslim Marriage Act, 1939",
+    "file": "documents/dissolution-muslim-marriage-1939.txt",
+    "description": "Grounds on which a Muslim woman can obtain a decree dissolving her marriage through the courts."
+  },
+  {
+    "id": "muslim-women-protection-2019",
+    "name": "The Muslim Women (Protection of Rights on Marriage) Act, 2019",
+    "file": "documents/muslim-women-protection-rights-2019.txt",
+    "description": "Criminalises instant triple talaq (talaq-e-biddat) and provides for subsistence allowance and custody rights for the wife."
+  },
+  {
+    "id": "muslim-personal-law-shariat-1937",
+    "name": "The Muslim Personal Law (Shariat) Application Act, 1937",
+    "file": "documents/muslim-personal-law-shariat-1937.txt",
+    "description": "Establishes that Muslim Personal Law (Shariat), not custom, governs marriage, inheritance, and family matters for Muslims in India."
+  },
+  {
+    "id": "landmark-judgments",
+    "name": "Compendium of Important Supreme Court Judgments",
+    "file": "documents/landmark-judgments.txt",
+    "description": "A reference collection of landmark Supreme Court cases and what each one decided, organised by legal topic — use this to find real case citations."
+  }
+]

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Everyone's Law — Ask</title>
+<style>
+  :root {
+    --paper: #faf8f3; --ink: #1c1a17; --seal: #7a2e2e; --seal-deep: #5c2222;
+    --gold: #a9822f; --line: #ddd6c7; --muted: #6b6459; --ok-bg: #fffef9;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: -apple-system, "Segoe UI", sans-serif;
+    display: flex; justify-content: center; min-height: 100vh;
+    padding: 20px 14px 60px;
+  }
+  main { width: 100%; max-width: 700px; }
+  nav { display: flex; gap: 4px; margin-bottom: 22px; border-bottom: 1px solid var(--line); }
+  nav a {
+    color: var(--muted); text-decoration: none; font-weight: 600; font-size: 16px;
+    padding: 10px 16px; border-bottom: 3px solid transparent; transition: color 0.15s, border-color 0.15s;
+  }
+  nav a:hover { color: var(--seal); background: #fffef9; }
+  nav a.inactive { font-weight: 500; }
+  nav a:not(.inactive) { color: var(--seal); border-bottom-color: var(--seal); }
+  header {
+    border-bottom: 2px solid var(--seal); padding-bottom: 14px; margin-bottom: 18px;
+    font-family: Georgia, serif;
+  }
+  header .mark { font-size: 12px; letter-spacing: 0.04em; color: var(--seal); font-style: italic; }
+  header h1 { font-size: 24px; margin: 4px 0 6px; font-weight: 700; }
+  header p { margin: 0; color: var(--muted); font-size: 13px; font-family: inherit; }
+
+  .prompts { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+  .prompt-chip {
+    background: #fff; border: 1px solid var(--line); border-radius: 20px;
+    padding: 7px 14px; font-size: 13px; cursor: pointer; color: var(--ink);
+  }
+  .prompt-chip:hover { border-color: var(--seal); }
+
+  #thread { display: flex; flex-direction: column; gap: 16px; margin-bottom: 18px; }
+  .msg-question {
+    align-self: flex-end; background: var(--ink); color: var(--paper);
+    padding: 10px 16px; border-radius: 4px; max-width: 88%; font-size: 15px;
+  }
+  .answer-card {
+    border: 1px solid var(--line); border-left: 3px solid var(--seal);
+    background: var(--ok-bg); padding: 16px 18px; font-size: 14.5px;
+  }
+  .answer-card h3 {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em;
+    color: var(--gold); margin: 14px 0 4px;
+  }
+  .answer-card h3:first-child { margin-top: 0; }
+  .answer-card .val { line-height: 1.5; }
+  .answer-card .case { border-top: 1px dashed var(--line); padding-top: 8px; margin-top: 8px; }
+  .answer-card .overturned { color: var(--seal-deep); font-weight: 600; }
+
+  .loading, .error, .notcovered {
+    font-size: 14px; color: var(--muted); font-style: italic;
+  }
+  .error { color: var(--seal-deep); font-style: normal; }
+
+  form { display: flex; gap: 8px; border-top: 1px solid var(--line); padding-top: 14px; }
+  input[type="text"] {
+    flex: 1; padding: 12px 14px; border: 1px solid var(--line); border-radius: 4px;
+    font-size: 15px; background: #fff;
+  }
+  input[type="text"]:focus { outline: none; border-color: var(--seal); }
+  button {
+    background: var(--seal); color: var(--paper); border: none; border-radius: 4px;
+    padding: 0 18px; font-size: 15px; cursor: pointer;
+  }
+  button:hover { background: var(--seal-deep); }
+  button:disabled { background: var(--line); cursor: default; }
+  #micButton {
+    background: #fff; color: var(--seal); border: 1px solid var(--line);
+    border-radius: 4px; padding: 0 14px; font-size: 17px; cursor: pointer;
+  }
+  #micButton:hover { border-color: var(--seal); }
+  #micButton.listening { background: var(--seal); color: #fff; }
+
+  footer { margin-top: 16px; font-size: 11.5px; color: var(--muted); }
+
+  @media (max-width: 480px) {
+    header h1 { font-size: 20px; }
+    .msg-question { max-width: 94%; }
+    nav { gap: 0; }
+    nav a { padding: 8px 10px; font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <nav><a href="index.html" class="inactive">Home</a><a href="ask.html">Ask a question</a><a href="explainer.html" class="inactive">Bare Act Explainer</a></nav>
+  <header>
+    <div class="mark">Everyone's Law</div>
+    <h1>Tell us your problem, in your own words</h1>
+    <p>Covers criminal law, evidence & procedure, the Constitution, contracts, consumer rights, data protection, RTI, company law, and family/marriage law.</p>
+  </header>
+
+  <div class="prompts" id="prompts">
+    <div class="prompt-chip">Someone stole my phone at work, what can I do?</div>
+    <div class="prompt-chip">The shopkeeper won't honour our agreement, what are my rights?</div>
+    <div class="prompt-chip">I want a divorce, what are my options?</div>
+    <div class="prompt-chip">A company sold me a defective product and won't refund me</div>
+  </div>
+
+  <div id="thread"></div>
+
+  <form id="askForm">
+    <input type="text" id="questionInput" placeholder="Describe your situation..." autocomplete="off" />
+    <button type="button" id="micButton" title="Speak your question">🎤</button>
+    <button type="submit" id="askButton">Ask</button>
+  </form>
+
+  <footer>AI-generated. Court citations should be verified before relying on them. Not a substitute for a lawyer.</footer>
+</main>
+
+<script>
+  const form = document.getElementById("askForm");
+  const input = document.getElementById("questionInput");
+  const button = document.getElementById("askButton");
+  const thread = document.getElementById("thread");
+  const prompts = document.getElementById("prompts");
+  const micButton = document.getElementById("micButton");
+
+  // Voice input — uses the browser's own free speech recognition, no API call.
+  const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (SpeechRecognitionAPI) {
+    const recognition = new SpeechRecognitionAPI();
+    recognition.lang = "en-IN";
+    recognition.interimResults = false;
+    let listening = false;
+
+    micButton.addEventListener("click", () => {
+      if (listening) { recognition.stop(); return; }
+      recognition.start();
+    });
+    recognition.addEventListener("start", () => {
+      listening = true;
+      micButton.classList.add("listening");
+      micButton.textContent = "⏺";
+    });
+    recognition.addEventListener("end", () => {
+      listening = false;
+      micButton.classList.remove("listening");
+      micButton.textContent = "🎤";
+    });
+    recognition.addEventListener("result", (e) => {
+      const transcript = e.results[0][0].transcript;
+      input.value = transcript;
+    });
+    recognition.addEventListener("error", () => {
+      listening = false;
+      micButton.classList.remove("listening");
+      micButton.textContent = "🎤";
+    });
+  } else {
+    micButton.style.display = "none"; // not supported on this browser — hide rather than show a dead button
+  }
+
+  prompts.querySelectorAll(".prompt-chip").forEach((chip) => {
+    chip.addEventListener("click", () => {
+      input.value = chip.textContent;
+      form.requestSubmit();
+    });
+  });
+
+  function addQuestion(text) {
+    const div = document.createElement("div");
+    div.className = "msg-question";
+    div.textContent = text;
+    thread.appendChild(div);
+  }
+
+  function addLoading() {
+    const div = document.createElement("div");
+    div.className = "loading";
+    div.textContent = "Reading through the relevant law...";
+    thread.appendChild(div);
+    return div;
+  }
+
+  function esc(s) {
+    const d = document.createElement("div");
+    d.textContent = s ?? "";
+    return d.innerHTML;
+  }
+
+  function addAnswer(data) {
+    if (data.not_covered) {
+      const div = document.createElement("div");
+      div.className = "notcovered";
+      div.textContent = data.message || "This isn't covered by the laws currently loaded.";
+      thread.appendChild(div);
+      return;
+    }
+
+    const card = document.createElement("div");
+    card.className = "answer-card";
+
+    let judgmentsHtml = "";
+    if (Array.isArray(data.landmark_judgments) && data.landmark_judgments.length) {
+      judgmentsHtml = data.landmark_judgments.map((j) => `
+        <div class="case">
+          <div class="val"><strong>${esc(j.case_name)}</strong></div>
+          <div class="val">${esc(j.what_court_said)}</div>
+          ${j.still_valid === false ? `<div class="val overturned">Note: later overturned — ${esc(j.note_if_overturned)}</div>` : ""}
+        </div>
+      `).join("");
+    } else {
+      const kanoonUrl = "https://indiankanoon.org/search/?formInput=" + encodeURIComponent(`${data.relevant_act || ""} ${data.statute_section || ""}`.trim());
+      judgmentsHtml = `<div class="val">No specific case picked for this — <a href="${kanoonUrl}" target="_blank" rel="noopener">search real judgments on Indian Kanoon</a> for this section.</div>`;
+    }
+
+    card.innerHTML = `
+      <h3>Relevant law</h3><div class="val">${esc(data.relevant_act)} — ${esc(data.statute_section)}</div>
+      <h3>In plain English</h3><div class="val">${esc(data.plain_explanation)}</div>
+      <h3>Punishment / consequence</h3><div class="val">${esc(data.punishment)}</div>
+      <h3>Evidence & procedure</h3><div class="val">${esc(data.evidence_and_procedure)}</div>
+      <h3>Example</h3><div class="val">${esc(data.example)}</div>
+      <h3>Related judgments</h3>${judgmentsHtml}
+    `;
+    thread.appendChild(card);
+  }
+
+  function addError(message) {
+    const div = document.createElement("div");
+    div.className = "error";
+    div.textContent = message;
+    thread.appendChild(div);
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const question = input.value.trim();
+    if (!question) return;
+
+    addQuestion(question);
+    input.value = "";
+    button.disabled = true;
+    const loadingEl = addLoading();
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question }),
+      });
+      const data = await res.json();
+      loadingEl.remove();
+      if (!res.ok) addError(friendlyError(data.error) || "Something went wrong.");
+      else addAnswer(data);
+    } catch (err) {
+      loadingEl.remove();
+      addError("Could not reach the server.");
+    } finally {
+      button.disabled = false;
+    }
+  });
+
+  function friendlyError(rawError) {
+    if (rawError && /UNAVAILABLE|high demand|503/i.test(rawError)) {
+      return "The AI service is briefly overloaded right now — please try asking again in a few seconds.";
+    }
+    return rawError;
+  }
+</script>
+</body>
+</html>

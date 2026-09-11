@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Everyone's Law — Bare Act Explainer</title>
+<style>
+  :root {
+    --paper: #faf8f3; --ink: #1c1a17; --seal: #7a2e2e; --seal-deep: #5c2222;
+    --gold: #a9822f; --line: #ddd6c7; --muted: #6b6459;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: -apple-system, "Segoe UI", sans-serif;
+    display: flex; justify-content: center; min-height: 100vh;
+    padding: 20px 14px 60px;
+  }
+  main { width: 100%; max-width: 900px; }
+  nav { display: flex; gap: 4px; margin-bottom: 22px; border-bottom: 1px solid var(--line); }
+  nav a {
+    color: var(--muted); text-decoration: none; font-weight: 600; font-size: 16px;
+    padding: 10px 16px; border-bottom: 3px solid transparent; transition: color 0.15s, border-color 0.15s;
+  }
+  nav a:hover { color: var(--seal); background: #fffef9; }
+  nav a.inactive { font-weight: 500; }
+  nav a:not(.inactive) { color: var(--seal); border-bottom-color: var(--seal); }
+  header {
+    border-bottom: 2px solid var(--seal); padding-bottom: 14px; margin-bottom: 18px;
+    font-family: Georgia, serif;
+  }
+  header .mark { font-size: 12px; letter-spacing: 0.04em; color: var(--seal); font-style: italic; }
+  header h1 { font-size: 24px; margin: 4px 0 6px; font-weight: 700; }
+  header p { margin: 0; color: var(--muted); font-size: 13px; font-family: inherit; }
+
+  .controls {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;
+  }
+  select, input[type="text"] {
+    padding: 10px 12px; border: 1px solid var(--line); border-radius: 4px;
+    font-size: 14px; background: #fff;
+  }
+  select { min-width: 220px; }
+  input[type="text"] { flex: 1; min-width: 160px; }
+  button {
+    background: var(--seal); color: var(--paper); border: none; border-radius: 4px;
+    padding: 0 18px; font-size: 14px; cursor: pointer;
+  }
+  button:hover { background: var(--seal-deep); }
+  button:disabled { background: var(--line); cursor: default; }
+
+  .grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+  }
+  .panel {
+    border: 1px solid var(--line); background: #fffef9; padding: 16px 18px;
+  }
+  .panel.original { border-left: 3px solid var(--muted); font-family: Georgia, serif; white-space: pre-wrap; font-size: 14px; line-height: 1.6; }
+  .panel.breakdown { border-left: 3px solid var(--seal); }
+  .breakdown h3 {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em;
+    color: var(--gold); margin: 14px 0 4px;
+  }
+  .breakdown h3:first-child { margin-top: 0; }
+  .breakdown .val { font-size: 14.5px; line-height: 1.55; }
+  .overturned { color: var(--seal-deep); font-weight: 600; }
+
+  .loading, .error { font-size: 14px; color: var(--muted); font-style: italic; margin-bottom: 12px; }
+  .error { color: var(--seal-deep); font-style: normal; }
+  footer { margin-top: 18px; font-size: 11.5px; color: var(--muted); }
+
+  @media (max-width: 720px) {
+    .grid { grid-template-columns: 1fr; }
+    header h1 { font-size: 20px; }
+    nav { gap: 0; }
+    nav a { padding: 8px 10px; font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <nav><a href="index.html" class="inactive">Home</a><a href="ask.html" class="inactive">Ask a question</a><a href="explainer.html">Bare Act Explainer</a></nav>
+  <header>
+    <div class="mark">Everyone's Law</div>
+    <h1>Bare Act, made simple</h1>
+    <p>Pick a law, optionally name a section, and see the original text next to a plain-English breakdown.</p>
+  </header>
+
+  <div class="controls">
+    <select id="actSelect"><option value="">Loading laws...</option></select>
+    <input type="text" id="sectionInput" placeholder="Section or topic (optional)" />
+    <button id="explainButton">Explain</button>
+  </div>
+
+  <div id="status"></div>
+  <div class="grid" id="resultGrid" style="display:none;">
+    <div class="panel original" id="originalPanel"></div>
+    <div class="panel breakdown" id="breakdownPanel"></div>
+  </div>
+
+  <footer>AI-generated. Court citations should be verified before relying on them.</footer>
+</main>
+
+<script>
+  const actSelect = document.getElementById("actSelect");
+  const sectionInput = document.getElementById("sectionInput");
+  const explainButton = document.getElementById("explainButton");
+  const status = document.getElementById("status");
+  const resultGrid = document.getElementById("resultGrid");
+  const originalPanel = document.getElementById("originalPanel");
+  const breakdownPanel = document.getElementById("breakdownPanel");
+
+  function esc(s) {
+    const d = document.createElement("div");
+    d.textContent = s ?? "";
+    return d.innerHTML;
+  }
+
+  async function loadActs() {
+    try {
+      const res = await fetch("/acts.json");
+      const acts = await res.json();
+      actSelect.innerHTML = acts.map((a) => `<option value="${esc(a.id)}">${esc(a.name)}</option>`).join("");
+    } catch (err) {
+      actSelect.innerHTML = `<option value="">Could not load laws list</option>`;
+    }
+  }
+  loadActs();
+
+  explainButton.addEventListener("click", async () => {
+    const act_id = actSelect.value;
+    const section = sectionInput.value.trim();
+    if (!act_id) return;
+
+    explainButton.disabled = true;
+    resultGrid.style.display = "none";
+    status.innerHTML = `<div class="loading">Working through the text...</div>`;
+
+    try {
+      const res = await fetch("/api/explain", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ act_id, section }),
+      });
+      const data = await res.json();
+      status.innerHTML = "";
+
+      if (!res.ok || data.error) {
+        const msg = data.error && /UNAVAILABLE|high demand|503/i.test(data.error)
+          ? "The AI service is briefly overloaded right now — please try again in a few seconds."
+          : (data.error || "Something went wrong.");
+        status.innerHTML = `<div class="error">${esc(msg)}</div>`;
+        return;
+      }
+
+      originalPanel.textContent = data.original_text_excerpt || "";
+
+      let caseHtml = `<div class="val">No specific case picked for this — <a href="${"https://indiankanoon.org/search/?formInput=" + encodeURIComponent(`${data.section_reference || actSelect.options[actSelect.selectedIndex]?.text || ""}`)}" target="_blank" rel="noopener">search real judgments on Indian Kanoon</a>.</div>`;
+      if (data.court_case) {
+        const c = data.court_case;
+        caseHtml = `
+          <div class="val"><strong>${esc(c.case_name)}</strong> — ${esc(c.court)}, ${esc(c.year)}</div>
+          <div class="val">${esc(c.what_court_said)}</div>
+          ${c.still_valid === false ? `<div class="val overturned">Note: later overturned — ${esc(c.note_if_overturned)}</div>` : ""}
+        `;
+      }
+
+      breakdownPanel.innerHTML = `
+        <h3>Section</h3><div class="val">${esc(data.section_reference)}</div>
+        <h3>In plain English</h3><div class="val">${esc(data.plain_english)}</div>
+        <h3>Example</h3><div class="val">${esc(data.example)}</div>
+        <h3>Court case</h3>${caseHtml}
+      `;
+
+      resultGrid.style.display = "grid";
+    } catch (err) {
+      status.innerHTML = `<div class="error">Could not reach the server.</div>`;
+    } finally {
+      explainButton.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>
